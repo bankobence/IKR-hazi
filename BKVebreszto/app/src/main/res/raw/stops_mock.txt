@@ -1,0 +1,13 @@
+﻿stop_id,stop_name,stop_lat,stop_lon,stop_code,location_type,parent_station,wheelchair_boarding,stop_direction
+002133,"Örs vezér tere M+H, déli tárolótér",47.500366,19.135700,002133,,CS003106,2,
+002136,Fogas üzem (kapu),47.509119,19.014403,,,,,
+002138,Kőbánya alsó vasútállomás,47.483354,19.127803,002138,,CSF01800,2,
+003002,Puskás Ferenc Stadion M,47.500368,19.103406,003002,,CS003002,2,
+003105,Bécsi út / Vörösvári út,47.548817,19.029722,003105,,CSF00571,2,
+003106,"Örs vezér tere M+H, északi tároló",47.505160,19.136637,003106,,CS003106,2,
+003118,"Óbuda, Bogdáni út",47.551471,19.041971,003118,,CS003118,2,
+004716,"ÉD metró járműtelep,porta",47.469651,19.129090,,,,2,
+004948,Metró ÉD járműtelep (kapu),47.465239,19.142612,,,,,
+004952,Metró KNY járműtelep (kapu),47.502234,19.132179,,,,,
+005064,Andor utcai autóbuszgarázs,47.457789,19.027553,005064,,CS005064,,
+005924,Mill.FAV járműtelep (kapu),47.518788,19.093168,,,,,
