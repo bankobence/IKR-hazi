@@ -6,17 +6,18 @@ package com.example.babence.bkvebreszto;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class DatabaseManager {
 
-    private SQLiteDatabase database;
+    private static SQLiteDatabase database;
     private DBHelper dbHelper;
-    /*
-    public static final String META_KEY_FAVOURITE = "favourite";
-    public static final String META_KEY_HIDDEN = "hidden";
-    public static final String META_KEY_LASTVALUE = "lastvalue";
-    */
+
 
     public DatabaseManager(Context context){
         dbHelper = new DBHelper(context);
@@ -28,27 +29,48 @@ public class DatabaseManager {
         dbHelper.close();
     }
 
-    private void addStop(int stopid, String stopname, String stoplat, String stoplon){
+    public static void addStop(Stops s){
 
         ContentValues values = new ContentValues();
 
-        //invalid inputok kezelese itt vagy a csv-nel
-        values.put(DBHelper.COLUMN_STOP_ID, stopid);
-        values.put(DBHelper.COLUMN_STOP_NAME, stopname);
-        values.put(DBHelper.COLUMN_STOP_LAT, stoplat);
-        values.put(DBHelper.COLUMN_STOP_LON, stoplon);
+
+        values.put(DBHelper.COLUMN_STOP_ID, s.id);
+        values.put(DBHelper.COLUMN_STOP_NAME, s.name);
+        values.put(DBHelper.COLUMN_STOP_LAT,  s.lat);
+        values.put(DBHelper.COLUMN_STOP_LON, s.lon);
 
         database.insert(DBHelper.TABLE_STOPS, null, values);
     }
-/*
-    private String[] getGPS(int stopid){
+
+    //segitseg, hogy normalis ID-k vannak-e
+    public void printAllID(){
+        String[] column = {DBHelper.COLUMN_STOP_ID};
+        Cursor cursor = database.query(DBHelper.TABLE_STOPS, column, null , null, null, null, null);
+        cursor.moveToFirst();
+        while (!cursor.isAfterLast()) {
+
+            Log.e("Adatbazis kezeles", "All ID: " + cursor.getString(cursor.getColumnIndex(DBHelper.COLUMN_STOP_ID)));
+            cursor.moveToNext();
+        }
+        cursor.close();
+    }
+
+    //ez majd jo lesz, felkesz
+    public void getGPS(int stopid){
         String[] gpsLatLon;
         String[] column = {DBHelper.COLUMN_STOP_LAT, DBHelper.COLUMN_STOP_LON};
         Cursor cursor = database.query(DBHelper.TABLE_STOPS, column ,DBHelper.COLUMN_STOP_ID+" = " + stopid, null, null, null, null);
+        int c = cursor.getColumnCount();
+        Log.e("Adatbazis kezeles", "oszlopok szama: " + c);
+        if (cursor.moveToFirst()) { // data?
+            Log.e("Adatbazis kezeles", "lat: " + cursor.getString(cursor.getColumnIndex(DBHelper.COLUMN_STOP_LAT)));
+            Log.e("Adatbazis kezeles", "lon: " + cursor.getString(cursor.getColumnIndex(DBHelper.COLUMN_STOP_LON)));
+        }
+        cursor.close();
+        //return gpsLatLon;
+    }
+/*  EZEK CSAK A REGI ONLABOMBOL MARADTAK, SEGITSEGKENT :D
 
-        return gpsLatLon;
-    }*/
-/*
     private String getMeta(int nodeid, String metakey){
         String meta = null;
         String[] column = {DBHelper.COLUMN_META_VALUE};

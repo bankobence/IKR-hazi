@@ -6,6 +6,7 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -21,6 +22,8 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static java.lang.String.valueOf;
@@ -31,6 +34,8 @@ public class MainActivity extends AppCompatActivity {
     public String lon = "longitude", lat = "latitude";
     public double longitude, latitude;
     public double lonBKS = 47.600125, latBKS = 19.046357;
+    private static DatabaseManager myDB;
+    public List<Stops> stops = new ArrayList<Stops>();
 
 
     @Override
@@ -54,42 +59,69 @@ public class MainActivity extends AppCompatActivity {
          * INNEN KEZDŐDIK A SAJÁT KÓDOM
          */
 
+        //txt fajl meghatarozasa
         InputStream inputStream = getResources().openRawResource(R.raw.stops_mock);
-
         CSVImport csvFile = new CSVImport(inputStream);
-        List stops = csvFile.read();
 
+        //beolvasas, egy Stops objektumlistat kapunk vissza
+        stops = csvFile.read();
+        myDB = new DatabaseManager(getBaseContext());
+        myDB.printAllID(); //ez csak ugy ellenorzesnek, hogy mi van elotte az adatbazisban
+
+        //vegigiteralva hozzaadjuk a lista tagjait a Stops tablahoz
+        for (Stops s : stops) {
+            //Log.e("add Stop", "ID: " + s.id + " ,name: " + s.name + " ,lat: " + s.lat + " ,lon:" + s.lon);
+            myDB.addStop(s);
+        }
+        myDB.getGPS(2133); //teszt hogy jo-e a koordinata
+
+
+         myDB.close();
 
         final LocationManager locationManagerNet = (LocationManager)
                 getSystemService(Context.LOCATION_SERVICE);
 
            /*
-                 * HA Android 6.0 feletti, akkor pont fordítva legyenek az ágak, tehát ami itt az ifben, ott az elseben
-                 */
+            * HA Android 6.0 feletti, akkor pont fordítva legyenek az ágak, tehát ami itt az ifben, ott az elseben
+            * ezt majd szepre le lehetne kezelni verziofuggore
+            */
         if (ContextCompat.checkSelfPermission(MainActivity.this, android.Manifest.permission.ACCESS_FINE_LOCATION) ==
                 PackageManager.PERMISSION_GRANTED &&
                 ContextCompat.checkSelfPermission(MainActivity.this, android.Manifest.permission.ACCESS_COARSE_LOCATION) ==
                         PackageManager.PERMISSION_GRANTED) {
 
-            ActivityCompat.requestPermissions(MainActivity.this, new String[]{
-                            Manifest.permission.ACCESS_FINE_LOCATION,
-                            Manifest.permission.ACCESS_COARSE_LOCATION},
-                    1); //ez requestCode, most nem kezelem, barmi lehet};
+            if(Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.M){
+                try {
 
+                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{
+                                    Manifest.permission.ACCESS_FINE_LOCATION,
+                                    Manifest.permission.ACCESS_COARSE_LOCATION},
+                            1); //ez requestCode, most nem kezelem, barmi lehet};
+
+
+                } catch (SecurityException e) {
+                    Log.e("MYAPP", "exception locManagernel:", e);
+                }
+            }else {
+                locationManagerNet.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
+            }
 
         } else {
-            try {
-
+            if(Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.M){
                 locationManagerNet.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
-                Location last = locationManagerNet.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+
+            }else {
+                try {
+
+                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{
+                                    Manifest.permission.ACCESS_FINE_LOCATION,
+                                    Manifest.permission.ACCESS_COARSE_LOCATION},
+                            1); //ez requestCode, most nem kezelem, barmi lehet};
 
 
-                locationListener.onLocationChanged(last);
-                lon = valueOf(last.getLongitude());
-                lat = valueOf(last.getLatitude());
-
-            } catch (SecurityException e) {
-                Log.e("MYAPP", "exception locManagernel:", e);
+                } catch (SecurityException e) {
+                    Log.e("MYAPP", "exception locManagernel:", e);
+                }
             }
         }
 
@@ -101,7 +133,8 @@ public class MainActivity extends AppCompatActivity {
         button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 
-                Toast.makeText(MainActivity.this, "Legutobbi koordinatak: " + lon + lat, Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Legelso koordinatak: lon:" + longitude + " lat:" + latitude, Toast.LENGTH_SHORT).show();
+                //Toast.makeText(MainActivity.this, getAndroidVersion(), Toast.LENGTH_SHORT).show();
 
             }
         });
@@ -139,6 +172,12 @@ public class MainActivity extends AppCompatActivity {
     SAJAT FUGGVENYEIM/OSZTALYAIM
      */
 
+    public String getAndroidVersion() {
+        String release = Build.VERSION.RELEASE;
+        int sdkVersion = Build.VERSION.SDK_INT;
+        return "Android SDK: " + sdkVersion + " (" + release +")";
+    }
+
     public double getDistanceFromLatLonInKm(double lat1, double lon1, double lat2, double lon2) {
         int R = 6371; // Radius of the earth in km
         double dLat = deg2rad(lat2 - lat1);  // deg2rad below
@@ -167,7 +206,7 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(
                     getBaseContext(),
                     "Location changed: Lat: " + location.getLatitude() + " Lng: "
-                            + location.getLongitude() + "Tavolsag a buszmegallotol: " + dist,
+                            + location.getLongitude() + "\nTávolság a buszmegállótól: " + dist,
                     Toast.LENGTH_SHORT).show();
 
         }
