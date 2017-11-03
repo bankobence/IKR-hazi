@@ -3,6 +3,7 @@
     package="com.example.babence.bkvebreszto">
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
     <uses-feature android:name="android.hardware.location.gps" />
 
     <application
@@ -23,6 +24,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".SearchActivity"
+            android:label="@string/title_activity_search"
+            android:parentActivityName="com.example.babence.bkvebreszto.MainActivity"
+
+        android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>

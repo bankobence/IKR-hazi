@@ -2,14 +2,13 @@ package com.example.babence.bkvebreszto;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -19,11 +18,11 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static java.lang.String.valueOf;
@@ -45,19 +44,23 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+
+
+        TextView stopNameText = (TextView) findViewById(R.id.stopNameText);
+        stopNameText.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                Intent intent = new Intent(getApplicationContext(), SearchActivity.class);
+                startActivity(intent);
             }
         });
-
 
         /*************************************************************************************
          * INNEN KEZDŐDIK A SAJÁT KÓDOM
          */
+
+
+
 
         //txt fajl meghatarozasa
         InputStream inputStream = getResources().openRawResource(R.raw.stops_mock);
@@ -66,17 +69,17 @@ public class MainActivity extends AppCompatActivity {
         //beolvasas, egy Stops objektumlistat kapunk vissza
         stops = csvFile.read();
         myDB = new DatabaseManager(getBaseContext());
-        myDB.printAllID(); //ez csak ugy ellenorzesnek, hogy mi van elotte az adatbazisban
+        //myDB.printAllID(); //ez csak ugy ellenorzesnek, hogy mi van elotte az adatbazisban
 
         //vegigiteralva hozzaadjuk a lista tagjait a Stops tablahoz
         for (Stops s : stops) {
             //Log.e("add Stop", "ID: " + s.id + " ,name: " + s.name + " ,lat: " + s.lat + " ,lon:" + s.lon);
             myDB.addStop(s);
         }
-        myDB.getGPS(2133); //teszt hogy jo-e a koordinata
+        //myDB.getGPS(2133); //teszt hogy jo-e a koordinata
 
 
-         myDB.close();
+        myDB.close();
 
         final LocationManager locationManagerNet = (LocationManager)
                 getSystemService(Context.LOCATION_SERVICE);
