@@ -1,89 +1,92 @@
 package com.example.babence.bkvebreszto;
 
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
+
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.MapsInitializer;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
- * {@link PlaceholderFragment.OnFragmentInteractionListener} interface
+ * {@link MapFragment.OnFragmentInteractionListener} interface
  * to handle interaction events.
- * Use the {@link PlaceholderFragment#newInstance} factory method to
+ * Use the {@link MapFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class PlaceholderFragment extends Fragment {
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+public class MapFragment extends android.support.v4.app.Fragment
+        implements OnMapReadyCallback {
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
-
+    MapView mapView;
+    GoogleMap mMap;
     private OnFragmentInteractionListener mListener;
 
-    /**
-     * A placeholder fragment containing a simple view.
-     */
-
-        private static final String ARG_SECTION_NUMBER = "section_number";
-
-        /**
-         * Returns a new instance of this fragment for the given section
-         * number.
-         */
-        public static PlaceholderFragment newInstance() {
-            PlaceholderFragment fragment = new PlaceholderFragment();
-            return fragment;
-        }
-
-
-
-
-    public PlaceholderFragment() {
+    public MapFragment() {
         // Required empty public constructor
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment PlaceholderFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static PlaceholderFragment newInstance(String param1, String param2) {
-        PlaceholderFragment fragment = new PlaceholderFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        mMap = googleMap;
+        mMap.getUiSettings().setMyLocationButtonEnabled(false);
+
+        //map.setMyLocationEnabled(true);
+        // Add a marker in Sydney, Australia, and move the camera.
+        LatLng bp = new LatLng(47.498333, 19.040833);
+        mMap.addMarker(new MarkerOptions().position(bp).title("Marker in BP"));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(bp,11));
+
+
     }
+
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_placeholder, container, false);
+
+        View v = inflater.inflate(R.layout.fragment_map, container, false);
+        // Gets the MapView from the XML layout and creates it
+        mapView = (MapView) v.findViewById(R.id.mapview);
+        mapView.onCreate(savedInstanceState);
+        mapView.getMapAsync(this);
+
+        return v;
+
+    }
+
+    public static MapFragment newInstance() {
+        MapFragment fragment = new MapFragment();
+        //Bundle args = new Bundle();
+        //args.putInt(ARG_SECTION_NUMBER, sectionNumber);
+        //fragment.setArguments(args);
+        return fragment;
+    }
+    @Override
+    public void onResume() {
+        mapView.onResume();
+        super.onResume();
     }
 
     // TODO: Rename method, update argument and hook method into UI event

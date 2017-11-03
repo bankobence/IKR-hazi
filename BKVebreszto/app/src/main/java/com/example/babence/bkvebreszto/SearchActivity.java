@@ -21,7 +21,7 @@ import android.view.ViewGroup;
 
 import android.widget.TextView;
 
-public class SearchActivity extends AppCompatActivity implements PlaceholderFragment.OnFragmentInteractionListener {
+public class SearchActivity extends AppCompatActivity implements MapFragment.OnFragmentInteractionListener, PlaceholderFragment.OnFragmentInteractionListener {
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -74,12 +74,8 @@ public class SearchActivity extends AppCompatActivity implements PlaceholderFrag
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-        /*
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }*/
+
+
         switch (item.getItemId()) {
             // Respond to the action bar's Up/Home button
             case android.R.id.home:
@@ -109,7 +105,11 @@ public class SearchActivity extends AppCompatActivity implements PlaceholderFrag
         public Fragment getItem(int position) {
             // getItem is called to instantiate the fragment for the given page.
             // Return a PlaceholderFragment (defined as a static inner class below).
-            return PlaceholderFragment.newInstance(position + 1);
+            if(position == 0){
+                return PlaceholderFragment.newInstance();
+            }else{
+                return MapFragment.newInstance();
+            }
         }
 
         @Override
@@ -122,9 +122,9 @@ public class SearchActivity extends AppCompatActivity implements PlaceholderFrag
         public CharSequence getPageTitle(int position) {
             switch (position) {
                 case 0:
-                    return "SECTION 1";
+                    return "MEGÁLLÓK";
                 case 1:
-                    return "SECTION 2";
+                    return "TÉRKÉP";
             }
             return null;
         }

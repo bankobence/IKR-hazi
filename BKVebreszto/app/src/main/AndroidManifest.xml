@@ -3,6 +3,12 @@
     package="com.example.babence.bkvebreszto">
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES"/>
+    <permission
+    android:name="com.example.permission.MAPS_RECEIVE"
+    android:protectionLevel="signature"/>
+    <uses-permission android:name="com.example.permission.MAPS_RECEIVE"/>
 
     <uses-feature android:name="android.hardware.location.gps" />
 
@@ -14,6 +20,9 @@
         android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyCwuGcpd8E-Blrpc9YPyQ7LwY4Ax6oAt0I"/>
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name"
@@ -28,8 +37,8 @@
             android:name=".SearchActivity"
             android:label="@string/title_activity_search"
             android:parentActivityName="com.example.babence.bkvebreszto.MainActivity"
-
-        android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar">
+        </activity>
     </application>
 
 </manifest>
