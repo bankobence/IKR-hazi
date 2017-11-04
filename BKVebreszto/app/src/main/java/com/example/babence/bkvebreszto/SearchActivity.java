@@ -21,7 +21,9 @@ import android.view.ViewGroup;
 
 import android.widget.TextView;
 
-public class SearchActivity extends AppCompatActivity implements MapFragment.OnFragmentInteractionListener, PlaceholderFragment.OnFragmentInteractionListener {
+import com.example.babence.bkvebreszto.dummy.DummyContent;
+
+public class SearchActivity extends AppCompatActivity implements MapFragment.OnFragmentInteractionListener, StopsearchFragment.OnListFragmentInteractionListener {
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -94,6 +96,11 @@ public class SearchActivity extends AppCompatActivity implements MapFragment.OnF
         //TODO
     }
 
+    @Override
+    public void onListFragmentInteraction(DummyContent.DummyItem item) {
+
+    }
+
 
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
@@ -106,7 +113,7 @@ public class SearchActivity extends AppCompatActivity implements MapFragment.OnF
             // getItem is called to instantiate the fragment for the given page.
             // Return a PlaceholderFragment (defined as a static inner class below).
             if(position == 0){
-                return PlaceholderFragment.newInstance();
+                return StopsearchFragment.newInstance();
             }else{
                 return MapFragment.newInstance();
             }

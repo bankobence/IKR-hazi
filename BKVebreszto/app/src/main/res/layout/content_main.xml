@@ -69,15 +69,16 @@
         android:id="@+id/textSound"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:gravity="center"
         android:layout_marginLeft="24dp"
         android:layout_marginTop="24dp"
+        android:drawableLeft="@mipmap/ic_sound"
         android:drawablePadding="4dp"
         android:text="Csengőhang neve"
         android:textSize="20sp"
         android:visibility="visible"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/cb3km"
-        tools:drawableLeft="@android:drawable/ic_popup_reminder" />
+        app:layout_constraintTop_toBottomOf="@+id/cb3km" />
 
     <CheckBox
         android:id="@+id/cbVibrate"

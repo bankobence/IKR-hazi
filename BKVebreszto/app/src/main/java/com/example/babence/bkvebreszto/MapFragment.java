@@ -9,6 +9,7 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.maps.CameraUpdate;
@@ -18,6 +19,7 @@ import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 
@@ -50,10 +52,7 @@ public class MapFragment extends android.support.v4.app.Fragment
         LatLng bp = new LatLng(47.498333, 19.040833);
         mMap.addMarker(new MarkerOptions().position(bp).title("Marker in BP"));
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(bp,11));
-
-
     }
-
 
 
     @Override
