@@ -17,10 +17,10 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String COLUMN_STOP_LAT= "stop_lat";
     public static final String COLUMN_STOP_LON = "stop_lon";
     private static final String DATABASE_NAME = "iks.db";
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 3;
 
     private static final String DATABASE_CREATE = " CREATE TABLE IF NOT EXISTS " + TABLE_STOPS +
-            "(" + COLUMN_STOP_ID + " INT NOT NULL PRIMARY KEY," +
+            "(" + COLUMN_STOP_ID + " VARCHAR(50) NOT NULL PRIMARY KEY," +
             COLUMN_STOP_NAME + " VARCHAR(200) NOT NULL," +
             COLUMN_STOP_LAT + " VARCHAR(50) NOT NULL, " +
             COLUMN_STOP_LON + " VARCHAR(50) NOT NULL)";

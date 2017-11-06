@@ -13,6 +13,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -23,7 +24,12 @@ import android.widget.TextView;
 
 import com.example.babence.bkvebreszto.dummy.DummyContent;
 
-public class SearchActivity extends AppCompatActivity implements MapFragment.OnFragmentInteractionListener, StopsearchFragment.OnListFragmentInteractionListener {
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+public class SearchActivity extends AppCompatActivity
+        implements MapFragment.OnFragmentInteractionListener, StopsearchFragment.OnListFragmentInteractionListener{
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -34,6 +40,9 @@ public class SearchActivity extends AppCompatActivity implements MapFragment.OnF
      * {@link android.support.v4.app.FragmentStatePagerAdapter}.
      */
     private SectionsPagerAdapter mSectionsPagerAdapter;
+
+    private static DatabaseManager myDB;
+    public List<Stops> stops = new ArrayList<Stops>();
 
     /**
      * The {@link ViewPager} that will host the section contents.
@@ -60,6 +69,26 @@ public class SearchActivity extends AppCompatActivity implements MapFragment.OnF
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
+
+
+
+
+        //txt fajl meghatarozasa
+        InputStream inputStream = getResources().openRawResource(R.raw.stops_mock);
+        CSVImport csvFile = new CSVImport(inputStream);
+
+        //beolvasas, egy Stops objektumlistat kapunk vissza
+        stops = csvFile.read();
+        myDB = new DatabaseManager(getBaseContext());
+        //myDB.printAllID(); //ez csak ugy ellenorzesnek, hogy mi van elotte az adatbazisban
+
+        //vegigiteralva hozzaadjuk a lista tagjait a Stops tablahoz
+        for (Stops s : stops) {
+            //Log.e("add Stop", "ID: " + s.id + " ,name: " + s.name + " ,lat: " + s.lat + " ,lon:" + s.lon);
+            myDB.addStop(s);
+        }
+
+        myDB.close();
 
     }
 
@@ -115,7 +144,7 @@ public class SearchActivity extends AppCompatActivity implements MapFragment.OnF
             if(position == 0){
                 return StopsearchFragment.newInstance();
             }else{
-                return MapFragment.newInstance();
+                return MapFragment.newInstance((ArrayList) stops);
             }
         }
 

@@ -4,11 +4,14 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.SyncStateContract;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
 
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
@@ -18,9 +21,15 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static android.content.ContentValues.TAG;
 
 
 /**
@@ -38,6 +47,8 @@ public class MapFragment extends android.support.v4.app.Fragment
     GoogleMap mMap;
     private OnFragmentInteractionListener mListener;
 
+    public List<Stops> mStops = new ArrayList<Stops>();
+
     public MapFragment() {
         // Required empty public constructor
     }
@@ -45,13 +56,47 @@ public class MapFragment extends android.support.v4.app.Fragment
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        mMap.getUiSettings().setMyLocationButtonEnabled(false);
+        mMap.getUiSettings().setMyLocationButtonEnabled(true);
+        if (ActivityCompat.checkSelfPermission(getContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getContext(), android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        mMap.setMyLocationEnabled(true);
+        //LatLng myPosition = new LatLng(MainActivity.latitude, MainActivity.longitude);
+        /*googleMap.addMarker(new MarkerOptions()
+                            .position(myPosition)
+                            .title("Itt vagyok!")
+                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));*/
 
-        //map.setMyLocationEnabled(true);
-        // Add a marker in Sydney, Australia, and move the camera.
         LatLng bp = new LatLng(47.498333, 19.040833);
-        mMap.addMarker(new MarkerOptions().position(bp).title("Marker in BP"));
+       //mMap.addMarker(new MarkerOptions().position(bp).title("Marker in BP"));
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(bp,11));
+        mStops = getArguments().getParcelableArrayList("megallok");
+        for(int i = 0 ; i <mStops.size() ; i++ ) {
+
+            createMarker(Double.parseDouble(mStops.get(i).getLatitude()),
+                        Double.parseDouble(mStops.get(i).getLongitude()),
+                        mStops.get(i).getStopName());
+        }
+
+
+    }
+
+    protected Marker createMarker(double latitude, double longitude, String title) {
+
+        return mMap.addMarker(new MarkerOptions()
+                .position(new LatLng(latitude, longitude))
+                .anchor(0.5f, 0.5f)
+                .title(title)
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_marker_clipart)));
+                //.snippet(snippet));
+
     }
 
 
@@ -77,11 +122,17 @@ public class MapFragment extends android.support.v4.app.Fragment
 
     public static MapFragment newInstance() {
         MapFragment fragment = new MapFragment();
-        //Bundle args = new Bundle();
-        //args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-        //fragment.setArguments(args);
         return fragment;
     }
+
+    public static MapFragment newInstance(ArrayList stops) {
+        MapFragment fragment = new MapFragment();
+        Bundle args = new Bundle();
+        args.putParcelableArrayList("megallok", stops);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
     @Override
     public void onResume() {
         mapView.onResume();
@@ -110,6 +161,24 @@ public class MapFragment extends android.support.v4.app.Fragment
     public void onDetach() {
         super.onDetach();
         mListener = null;
+    }
+
+    /*
+    *Ezt azért tettem be, hogy eltűnjön a billentyűzet mikor a listáról a térképre.
+    *Így viszont eltűnik az actionbar, amit vissza lehet hozni, ha lehúzod a képernyőt.
+     */
+    @Override
+    public void setUserVisibleHint(boolean isVisibleToUser) {
+        super.setUserVisibleHint(isVisibleToUser);
+        if (isVisibleToUser) {
+            try {
+                InputMethodManager mImm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+                mImm.hideSoftInputFromWindow(getView().getWindowToken(), 0);
+                mImm.hideSoftInputFromWindow(getActivity().getCurrentFocus().getWindowToken(), 0);
+            } catch (Exception e) {
+                Log.e(TAG, "setUserVisibleHint: ", e);
+            }
+        }
     }
 
     /**

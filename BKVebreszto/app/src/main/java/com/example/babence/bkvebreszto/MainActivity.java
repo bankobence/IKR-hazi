@@ -1,14 +1,22 @@
 package com.example.babence.bkvebreszto;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.OpenableColumns;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -21,6 +29,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,12 +38,16 @@ import static java.lang.String.valueOf;
 
 public class MainActivity extends AppCompatActivity {
 
+
     //sajat valtozoim
     public String lon = "longitude", lat = "latitude";
-    public double longitude, latitude;
+    public static double longitude, latitude;
     public double lonBKS = 47.600125, latBKS = 19.046357;
     private static DatabaseManager myDB;
     public List<Stops> stops = new ArrayList<Stops>();
+    private static final int READ_REQUEST_CODE = 42;
+    TextView songName;
+
 
 
     @Override
@@ -44,7 +57,9 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-
+    /*************************************************************************************
+    * INNEN KEZDŐDIK A SAJÁT KÓDOM
+    */
 
         TextView stopNameText = (TextView) findViewById(R.id.stopNameText);
         stopNameText.setOnClickListener(new View.OnClickListener(){
@@ -55,38 +70,24 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        /*************************************************************************************
-         * INNEN KEZDŐDIK A SAJÁT KÓDOM
-         */
+        songName = (TextView) findViewById(R.id.textSongName);
+        songName.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent_upload = new Intent();
+                intent_upload.setType("audio/*");
+                intent_upload.setAction(Intent.ACTION_GET_CONTENT);
+                startActivityForResult(intent_upload,READ_REQUEST_CODE);
+            }
+        });
 
 
-
-
-        //txt fajl meghatarozasa
-        InputStream inputStream = getResources().openRawResource(R.raw.stops_mock);
-        CSVImport csvFile = new CSVImport(inputStream);
-
-        //beolvasas, egy Stops objektumlistat kapunk vissza
-        stops = csvFile.read();
-        myDB = new DatabaseManager(getBaseContext());
-        //myDB.printAllID(); //ez csak ugy ellenorzesnek, hogy mi van elotte az adatbazisban
-
-        //vegigiteralva hozzaadjuk a lista tagjait a Stops tablahoz
-        for (Stops s : stops) {
-            //Log.e("add Stop", "ID: " + s.id + " ,name: " + s.name + " ,lat: " + s.lat + " ,lon:" + s.lon);
-            myDB.addStop(s);
-        }
-        //myDB.getGPS(2133); //teszt hogy jo-e a koordinata
-
-
-        myDB.close();
 
         final LocationManager locationManagerNet = (LocationManager)
                 getSystemService(Context.LOCATION_SERVICE);
 
            /*
-            * HA Android 6.0 feletti, akkor pont fordítva legyenek az ágak, tehát ami itt az ifben, ott az elseben
-            * ezt majd szepre le lehetne kezelni verziofuggore
+            * HA Android 6.0 feletti, fordítva kell valamiért ellenőrizni és engedélyt kérni, ezért a két ág
             */
         if (ContextCompat.checkSelfPermission(MainActivity.this, android.Manifest.permission.ACCESS_FINE_LOCATION) ==
                 PackageManager.PERMISSION_GRANTED &&
@@ -107,6 +108,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }else {
                 locationManagerNet.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
+
             }
 
         } else {
@@ -147,6 +149,39 @@ public class MainActivity extends AppCompatActivity {
         //locationManager.removeUpdates(locationListener);
     }
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode,
+                                 Intent resultData) {
+
+        // The ACTION_OPEN_DOCUMENT intent was sent with the request code
+        // READ_REQUEST_CODE. If the request code seen here doesn't match, it's the
+        // response to some other intent, and the code below shouldn't run at all.
+
+        if (requestCode == READ_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+            // The document selected by the user won't be returned in the intent.
+            // Instead, a URI to that document will be contained in the return intent
+            // provided to this method as a parameter.
+            // Pull that URI using resultData.getData().
+            Uri uri = null;
+            if (resultData != null) {
+                uri = resultData.getData();
+                Log.e("File valasztas", "Uri: " + uri.toString());
+                dumpImageMetaData(uri);
+
+
+                MediaPlayer mediaPlayer = new MediaPlayer();
+                mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+                try {
+                    mediaPlayer.setDataSource(getApplicationContext(), uri);
+                    mediaPlayer.prepare();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                mediaPlayer.start();
+
+            }
+        }
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -174,6 +209,50 @@ public class MainActivity extends AppCompatActivity {
     /*
     SAJAT FUGGVENYEIM/OSZTALYAIM
      */
+
+    public void dumpImageMetaData(Uri uri) {
+
+        // The query, since it only applies to a single document, will only return
+        // one row. There's no need to filter, sort, or select fields, since we want
+        // all fields for one document.
+        Cursor cursor = null;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
+            cursor = this.getContentResolver()
+                    .query(uri, null, null, null, null, null);
+        }
+
+        try {
+            // moveToFirst() returns false if the cursor has 0 rows.  Very handy for
+            // "if there's anything to look at, look at it" conditionals.
+            if (cursor != null && cursor.moveToFirst()) {
+
+                // Note it's called "Display Name".  This is
+                // provider-specific, and might not necessarily be the file name.
+                String displayName = cursor.getString(
+                        cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+                Log.e("File valasztas", "Display Name: " + displayName);
+                songName.setText(displayName);
+                int sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE);
+                // If the size is unknown, the value stored is null.  But since an
+                // int can't be null in Java, the behavior is implementation-specific,
+                // which is just a fancy term for "unpredictable".  So as
+                // a rule, check if it's null before assigning to an int.  This will
+                // happen often:  The storage API allows for remote files, whose
+                // size might not be locally known.
+                String size = null;
+                if (!cursor.isNull(sizeIndex)) {
+                    // Technically the column stores an int, but cursor.getString()
+                    // will do the conversion automatically.
+                    size = cursor.getString(sizeIndex);
+                } else {
+                    size = "Unknown";
+                }
+                Log.e("File valasztas", "Size: " + size);
+            }
+        } finally {
+            cursor.close();
+        }
+    }
 
     public String getAndroidVersion() {
         String release = Build.VERSION.RELEASE;

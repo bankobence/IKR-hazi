@@ -38,7 +38,7 @@ public class CSVImport {
                     resultList.add(stop);
 
                     //az elso negy mindig benne van: id,nev,lat,lon
-                    Log.e("MYAPP", "elso: " + row[0] + " ,masodik: " + row[1] + " ,harmadik: " + row[2] + ", negyedik: " + row[3]+";");
+                    //Log.e("MYAPP", "elso: " + row[0] + " ,masodik: " + row[1] + " ,harmadik: " + row[2] + ", negyedik: " + row[3]+";");
                     line++;
                 }else line++;
             }

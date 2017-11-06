@@ -50,6 +50,7 @@ public class StopsearchFragment extends Fragment {
         // Set the adapter
         Context context = view.getContext();
         RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.stoplist);
+        recyclerView.addItemDecoration(new SimpleDividerItemDecoration(getActivity()));
         recyclerView.setLayoutManager(new LinearLayoutManager(context));
         recyclerView.setAdapter(new MyStopsRecyclerViewAdapter(DummyContent.ITEMS, mListener));
 
