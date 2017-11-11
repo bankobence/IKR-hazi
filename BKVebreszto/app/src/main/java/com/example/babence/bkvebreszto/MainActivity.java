@@ -43,10 +43,12 @@ public class MainActivity extends AppCompatActivity {
     public String lon = "longitude", lat = "latitude";
     public static double longitude, latitude;
     public double lonBKS = 47.600125, latBKS = 19.046357;
-    private static DatabaseManager myDB;
     public List<Stops> stops = new ArrayList<Stops>();
-    private static final int READ_REQUEST_CODE = 42;
+    private Stops activeStop;
+    private static final int SONG_REQUEST_CODE = 42;
+    private static final int SEARCH_REQUEST_CODE = 1;
     TextView songName;
+    TextView stopName;
 
 
 
@@ -66,10 +68,11 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(getApplicationContext(), SearchActivity.class);
-                startActivity(intent);
+                //startActivity(intent);
+                startActivityForResult(intent, 1);
             }
         });
-
+        stopName = (TextView) findViewById(R.id.stopNameText);
         songName = (TextView) findViewById(R.id.textSongName);
         songName.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -77,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
                 Intent intent_upload = new Intent();
                 intent_upload.setType("audio/*");
                 intent_upload.setAction(Intent.ACTION_GET_CONTENT);
-                startActivityForResult(intent_upload,READ_REQUEST_CODE);
+                startActivityForResult(intent_upload,SONG_REQUEST_CODE);
             }
         });
 
@@ -156,8 +159,15 @@ public class MainActivity extends AppCompatActivity {
         // The ACTION_OPEN_DOCUMENT intent was sent with the request code
         // READ_REQUEST_CODE. If the request code seen here doesn't match, it's the
         // response to some other intent, and the code below shouldn't run at all.
+        if (requestCode == SEARCH_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
 
-        if (requestCode == READ_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+            activeStop = (Stops) resultData.getParcelableExtra("Search_data");
+            stopName.setText(activeStop.getStopName());
+            //Log.e("MainActivity.ListItem", "Az aktív megálló: " + activeStop.getId()+ ", " + activeStop.getStopName());
+        }
+
+
+        if (requestCode == SONG_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
             // The document selected by the user won't be returned in the intent.
             // Instead, a URI to that document will be contained in the return intent
             // provided to this method as a parameter.

@@ -30,7 +30,7 @@ public class CSVImport {
             while ((csvLine = reader.readLine()) != null) {
 
                 //specialis regularis kifejezes, mert az allamas nev is tartalmazhat vesszot...
-                String[] row = csvLine.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
+                String[] row = csvLine.split(";(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
                 if(line != 0) {
                     //amig uj sor van, a stops konstruktoraval Stops objektumokat csinalunk
                     stop = new Stops(row);

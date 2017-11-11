@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.babence.bkvebreszto.StopsearchFragment.OnListFragmentInteractionListener;
 import com.example.babence.bkvebreszto.dummy.DummyContent.DummyItem;
@@ -18,12 +19,18 @@ import java.util.List;
  */
 public class MyStopsRecyclerViewAdapter extends RecyclerView.Adapter<MyStopsRecyclerViewAdapter.ViewHolder> {
 
-    private final List<DummyItem> mValues;
+    //private final List<DummyItem> mValues;
+    private List<Stops> mValues;
     private final OnListFragmentInteractionListener mListener;
 
-    public MyStopsRecyclerViewAdapter(List<DummyItem> items, OnListFragmentInteractionListener listener) {
+    public MyStopsRecyclerViewAdapter(List<Stops> items, OnListFragmentInteractionListener listener) {
         mValues = items;
         mListener = listener;
+    }
+
+    public void setStops(List<Stops> newStops) {
+        mValues = newStops;
+        notifyDataSetChanged();
     }
 
     @Override
@@ -34,14 +41,15 @@ public class MyStopsRecyclerViewAdapter extends RecyclerView.Adapter<MyStopsRecy
     }
 
     @Override
-    public void onBindViewHolder(final ViewHolder holder, int position) {
+    public void onBindViewHolder(final ViewHolder holder, final int position) {
         holder.mItem = mValues.get(position);
-        holder.mIdView.setText(mValues.get(position).id);
-        holder.mContentView.setText(mValues.get(position).content);
+        holder.mIdView.setText(mValues.get(position).getId());
+        holder.mContentView.setText(mValues.get(position).getStopName());
 
         holder.mView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Toast.makeText(holder.mView.getContext() ,mValues.get(position).getStopName(), Toast.LENGTH_SHORT).show();
                 if (null != mListener) {
                     // Notify the active callbacks interface (the activity, if the
                     // fragment is attached to one) that an item has been selected.
@@ -50,6 +58,7 @@ public class MyStopsRecyclerViewAdapter extends RecyclerView.Adapter<MyStopsRecy
             }
         });
     }
+
 
     @Override
     public int getItemCount() {
@@ -60,7 +69,8 @@ public class MyStopsRecyclerViewAdapter extends RecyclerView.Adapter<MyStopsRecy
         public final View mView;
         public final TextView mIdView;
         public final TextView mContentView;
-        public DummyItem mItem;
+        public Stops mItem;
+
 
         public ViewHolder(View view) {
             super(view);

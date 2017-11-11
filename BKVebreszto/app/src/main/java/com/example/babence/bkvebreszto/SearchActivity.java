@@ -1,9 +1,9 @@
 package com.example.babence.bkvebreszto;
 
+
+import android.content.Intent;
 import android.net.Uri;
 import android.support.design.widget.TabLayout;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -14,15 +14,8 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-
-import android.widget.TextView;
-
-import com.example.babence.bkvebreszto.dummy.DummyContent;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -41,20 +34,56 @@ public class SearchActivity extends AppCompatActivity
      */
     private SectionsPagerAdapter mSectionsPagerAdapter;
 
-    private static DatabaseManager myDB;
     public List<Stops> stops = new ArrayList<Stops>();
 
     /**
      * The {@link ViewPager} that will host the section contents.
      */
     private ViewPager mViewPager;
+/*
+    @Override
+    protected void onResume() {
+        super.onResume();
+        new FetchData(this).execute();
+    }
+*/
+
+    public void dataReceived(List<Stops> stops) {
+        this.stops = stops;
+    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
+        //new FetchData(this).execute();
 
+        //txt fajl meghatarozasa
+        InputStream inputStream = getResources().openRawResource(R.raw.stops_only);
+        if(inputStream != null) {
+            CSVImport csvFile = new CSVImport(inputStream);
+            if(csvFile != null) {
 
+                //beolvasas, egy Stops objektumlistat kapunk vissza
+                stops = csvFile.read();
+                //myDB = new DatabaseManager(getBaseContext());
+                //myDB.printAllID(); //ez csak ugy ellenorzesnek, hogy mi van elotte az adatbazisban
+                /*
+                //vegigiteralva hozzaadjuk a lista tagjait a Stops tablahoz
+                for (Stops s : stops) {
+                    //Log.e("add Stop", "ID: " + s.id + " ,name: " + s.name + " ,lat: " + s.lat + " ,lon:" + s.lon);
+                    myDB.addStop(s);
+                }*/
+
+                //myDB.close();
+            }else{
+                Log.e("FetchData", "Rossz csv fájl");
+            }
+
+        }else{
+            Log.e("FetchData", "Nem jó az inputStream");
+        }
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -69,26 +98,6 @@ public class SearchActivity extends AppCompatActivity
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
-
-
-
-
-        //txt fajl meghatarozasa
-        InputStream inputStream = getResources().openRawResource(R.raw.stops_mock);
-        CSVImport csvFile = new CSVImport(inputStream);
-
-        //beolvasas, egy Stops objektumlistat kapunk vissza
-        stops = csvFile.read();
-        myDB = new DatabaseManager(getBaseContext());
-        //myDB.printAllID(); //ez csak ugy ellenorzesnek, hogy mi van elotte az adatbazisban
-
-        //vegigiteralva hozzaadjuk a lista tagjait a Stops tablahoz
-        for (Stops s : stops) {
-            //Log.e("add Stop", "ID: " + s.id + " ,name: " + s.name + " ,lat: " + s.lat + " ,lon:" + s.lon);
-            myDB.addStop(s);
-        }
-
-        myDB.close();
 
     }
 
@@ -121,14 +130,24 @@ public class SearchActivity extends AppCompatActivity
     }
 
     @Override
-    public void onFragmentInteraction(Uri uri) {
-        //TODO
+    public void onFragmentInteraction(Stops item) {
+        Log.e("MapItemSelected", "A kattintott megálló: " + item.getId()+ ", " + item.getStopName());
+        Intent intent = new Intent();
+        intent.putExtra("Search_data", item);
+        setResult(RESULT_OK, intent);
+        finish();
     }
 
     @Override
-    public void onListFragmentInteraction(DummyContent.DummyItem item) {
-
+    public void onListFragmentInteraction(Stops item) {
+        Log.e("ListItemSelected", "A kattintott megálló: " + item.getId()+ ", " + item.getStopName());
+        Intent intent = new Intent();
+        intent.putExtra("Search_data", item);
+        setResult(RESULT_OK, intent);
+        finish();
     }
+
+
 
 
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
@@ -142,7 +161,7 @@ public class SearchActivity extends AppCompatActivity
             // getItem is called to instantiate the fragment for the given page.
             // Return a PlaceholderFragment (defined as a static inner class below).
             if(position == 0){
-                return StopsearchFragment.newInstance();
+                return StopsearchFragment.newInstance((ArrayList) stops);
             }else{
                 return MapFragment.newInstance((ArrayList) stops);
             }

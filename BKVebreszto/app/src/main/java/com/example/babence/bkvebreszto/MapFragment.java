@@ -22,11 +22,14 @@ import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import static android.content.ContentValues.TAG;
@@ -47,6 +50,8 @@ public class MapFragment extends android.support.v4.app.Fragment
     GoogleMap mMap;
     private OnFragmentInteractionListener mListener;
 
+    protected HashMap<String, Marker> courseMarkers = new HashMap<String, Marker>();
+
     public List<Stops> mStops = new ArrayList<Stops>();
 
     public MapFragment() {
@@ -57,6 +62,7 @@ public class MapFragment extends android.support.v4.app.Fragment
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         mMap.getUiSettings().setMyLocationButtonEnabled(true);
+        mMap.setOnCameraChangeListener(getCameraChangeListener());
         if (ActivityCompat.checkSelfPermission(getContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getContext(), android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
@@ -68,23 +74,32 @@ public class MapFragment extends android.support.v4.app.Fragment
             return;
         }
         mMap.setMyLocationEnabled(true);
-        //LatLng myPosition = new LatLng(MainActivity.latitude, MainActivity.longitude);
-        /*googleMap.addMarker(new MarkerOptions()
-                            .position(myPosition)
-                            .title("Itt vagyok!")
-                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));*/
-
-        LatLng bp = new LatLng(47.498333, 19.040833);
-       //mMap.addMarker(new MarkerOptions().position(bp).title("Marker in BP"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(bp,11));
+        LatLng myPosition = new LatLng(MainActivity.latitude, MainActivity.longitude);
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myPosition,16));
         mStops = getArguments().getParcelableArrayList("megallok");
-        for(int i = 0 ; i <mStops.size() ; i++ ) {
+        mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
 
-            createMarker(Double.parseDouble(mStops.get(i).getLatitude()),
-                        Double.parseDouble(mStops.get(i).getLongitude()),
-                        mStops.get(i).getStopName());
-        }
+            @Override
+            public void onInfoWindowClick(Marker marker) {
+               //Toast.makeText(getContext(),"KATT: "+marker.getTitle(),Toast.LENGTH_SHORT).show();
+                if (mListener != null) {
+                    outerLoop:
+                    for(String key : courseMarkers.keySet()){
+                        if(courseMarkers.get(key).equals(marker)) {
+                            for(Stops actualStop : mStops) {
+                                if (key.equals(actualStop.getId())) {
+                                    //Log.e("MarkerSearch", "ActualStop: " + key + " ID: " + actualStop.getId());
+                                    mListener.onFragmentInteraction(actualStop);
+                                    break outerLoop;
 
+                                }
+                            }
+                        }
+                    }
+
+                }
+            }
+        });
 
     }
 
@@ -99,6 +114,70 @@ public class MapFragment extends android.support.v4.app.Fragment
 
     }
 
+    public GoogleMap.OnCameraChangeListener getCameraChangeListener()
+    {
+        return new GoogleMap.OnCameraChangeListener()
+        {
+            @Override
+            public void onCameraChange(CameraPosition position)
+            {
+                addItemsToMap(mStops);
+            }
+        };
+    }
+
+    private void addItemsToMap(List<Stops> items)
+    {
+        if(this.mMap != null)
+        {
+            //This is the current user-viewable region of the map
+            LatLngBounds bounds = this.mMap.getProjection().getVisibleRegion().latLngBounds;
+
+            //Loop through all the items that are available to be placed on the map
+            for(Stops item : items)
+            {
+
+                //If the item is within the the bounds of the screen
+                if(bounds.contains(new LatLng(Double.parseDouble(item.getLatitude()), Double.parseDouble(item.getLongitude()))))
+                {
+
+                    //If the item isn't already being displayed
+                    if(!courseMarkers.containsKey(item.getId()))
+                    {
+                        //Log.e("Map markers", "Aktualis zoom: " + mMap.getCameraPosition().zoom );
+                        if(mMap.getCameraPosition().zoom >= 16) {
+                            //Add the Marker to the Map and keep track of it with the HashMap
+                            //getMarkerForItem just returns a MarkerOptions object
+                            this.courseMarkers.put(item.getId(), createMarker(Double.parseDouble(item.getLatitude()),
+                                    Double.parseDouble(item.getLongitude()),
+                                    item.getStopName()));
+                        }
+                    }else{
+                        //Ha nagyon kizoomolunk de fent van a térképen, akkor töröljük
+                        if(courseMarkers.containsKey(item.getId()) && mMap.getCameraPosition().zoom < 16)
+                        {
+                            //1. Remove the Marker from the GoogleMap
+                            courseMarkers.get(item.getId()).remove();
+
+                            //2. Remove the reference to the Marker from the HashMap
+                            courseMarkers.remove(item.getId());
+                        }
+                    }
+                }else //If the marker is off screen
+                    {
+                        //If the course was previously on screen
+                        if(courseMarkers.containsKey(item.getId()))
+                        {
+                            //1. Remove the Marker from the GoogleMap
+                            courseMarkers.get(item.getId()).remove();
+
+                            //2. Remove the reference to the Marker from the HashMap
+                            courseMarkers.remove(item.getId());
+                        }
+                    }
+            }
+        }
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -137,13 +216,6 @@ public class MapFragment extends android.support.v4.app.Fragment
     public void onResume() {
         mapView.onResume();
         super.onResume();
-    }
-
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
     }
 
     @Override
@@ -193,6 +265,6 @@ public class MapFragment extends android.support.v4.app.Fragment
      */
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
-        void onFragmentInteraction(Uri uri);
+        void onFragmentInteraction(Stops stops);
     }
 }

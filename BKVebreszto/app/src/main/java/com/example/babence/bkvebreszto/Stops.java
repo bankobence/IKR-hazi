@@ -12,12 +12,14 @@ import static java.lang.Integer.valueOf;
  * Created by babence on 2017. 10. 28..
  */
 
+
+
 public class Stops implements Parcelable {
-    String id;
+    private String id;
     //int id;
-    String name;
-    String lat;
-    String lon;
+    private String name;
+    private String lat;
+    private String lon;
 
     public Stops(String[] row){
 
@@ -74,4 +76,5 @@ public class Stops implements Parcelable {
     public String getLongitude() {
         return lon;
     }
+    public String getId() {return id;}
 }

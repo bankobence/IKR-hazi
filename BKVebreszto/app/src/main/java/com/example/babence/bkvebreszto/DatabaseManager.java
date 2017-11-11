@@ -31,12 +31,12 @@ public class DatabaseManager {
 
     public static void addStop(Stops s) {
 
-        if (!isIdThere(s.id)) {
+        if (!isIdThere(s.getId())) {
             ContentValues values = new ContentValues();
-            values.put(DBHelper.COLUMN_STOP_ID, s.id);
-            values.put(DBHelper.COLUMN_STOP_NAME, s.name);
-            values.put(DBHelper.COLUMN_STOP_LAT, s.lat);
-            values.put(DBHelper.COLUMN_STOP_LON, s.lon);
+            values.put(DBHelper.COLUMN_STOP_ID, s.getId());
+            values.put(DBHelper.COLUMN_STOP_NAME, s.getStopName());
+            values.put(DBHelper.COLUMN_STOP_LAT, s.getLatitude());
+            values.put(DBHelper.COLUMN_STOP_LON, s.getLongitude());
             database.insert(DBHelper.TABLE_STOPS, null, values);
         }
     }

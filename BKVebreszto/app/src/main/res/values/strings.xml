@@ -2,4 +2,13 @@
     <string name="app_name">BKV ébresztő</string>
     <string name="action_settings">Beállítások</string>
     <string name="title_activity_search">Megálló keresése</string>
+    <string name="default_stop">Kiválasztott megálló</string>
+    <string name="text_100m">100 m-es értesítés</string>
+    <string name="text_1km">1 km-es értesítés</string>
+    <string name="text_3km">3 km-es értesítés</string>
+    <string name="sound_name">Csengőhang neve</string>
+    <string name="text_vibrate">Rezgés</string>
+    <string name="text_turn_on_GPS">Kapcsold be a netet és a GPS-t! :D</string>
+    <string name="button_get_GPS">Get GPS</string>
+
 </resources>

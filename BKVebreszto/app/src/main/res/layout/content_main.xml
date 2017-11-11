@@ -9,52 +9,64 @@
     tools:context="com.example.babence.bkvebreszto.MainActivity"
     tools:showIn="@layout/activity_main">
 
-
-    <TextView
-        android:id="@+id/stopNameText"
-        android:layout_width="wrap_content"
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/stopNameLayout"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
         android:layout_marginLeft="24dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
         android:layout_marginTop="32dp"
-        android:clickable="true"
-        android:text="Kiválasztott megálló"
-        android:textAlignment="viewStart"
-        android:gravity="start"
-        android:textColor="@android:color/black"
-        android:textSize="24dp"
-        android:textStyle="bold"
+        android:orientation="horizontal"
+        android:layout_gravity="center_vertical"
+        android:gravity="center_vertical"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <Switch
-        android:id="@+id/enableSwitch"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginRight="16dp"
-        android:checked="false"
-        android:splitTrack="false"
         app:layout_constraintRight_toRightOf="parent"
-        tools:checked="false"
-        app:layout_constraintBaseline_toBaselineOf="@+id/stopNameText" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintHorizontal_bias="0.0">
+
+        <TextView
+            android:id="@+id/stopNameText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.6"
+            android:clickable="true"
+            android:layout_gravity="center_vertical|start"
+            android:maxLines="2"
+            android:text="@string/default_stop"
+            android:textAlignment="viewStart"
+            android:textColor="@android:color/black"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <Switch
+            android:id="@+id/enableSwitch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="false"/>
+    </LinearLayout>
 
     <CheckBox
         android:id="@+id/cb100m"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
         android:layout_marginLeft="24dp"
         android:layout_marginTop="32dp"
-        android:text="100 m-es értesítés"
+        android:text="@string/text_100m"
         android:textColor="@android:color/black"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/stopNameText" />
+        app:layout_constraintTop_toBottomOf="@+id/stopNameLayout" />
 
     <CheckBox
         android:id="@+id/cb1km"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
         android:layout_marginLeft="24dp"
         android:layout_marginTop="20dp"
-        android:text="1 km-es értesítés"
+        android:text="@string/text_1km"
         android:textColor="@android:color/black"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/cb100m" />
@@ -63,46 +75,53 @@
         android:id="@+id/cb3km"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
         android:layout_marginLeft="24dp"
         android:layout_marginTop="20dp"
-        android:text="3 km-es értesítés"
+        android:text="@string/text_3km"
         android:textColor="@android:color/black"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/cb1km" />
 
     <TextView
         android:id="@+id/textSongName"
-        android:layout_width="wrap_content"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:gravity="center"
+        android:layout_marginStart="24dp"
         android:layout_marginLeft="24dp"
         android:layout_marginTop="24dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
+        android:drawableStart="@mipmap/ic_sound"
         android:drawableLeft="@mipmap/ic_sound"
         android:drawablePadding="4dp"
-        android:text="Csengőhang neve"
-        android:textSize="20sp"
+        android:gravity="center_vertical|start"
+        android:text="@string/sound_name"
+        android:textAlignment="textStart"
         android:textColor="@android:color/black"
-        android:visibility="visible"
+        android:textSize="20sp"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/cb3km" />
+        app:layout_constraintTop_toBottomOf="@+id/cbVibrate"
+        app:layout_constraintRight_toRightOf="parent" />
 
     <CheckBox
         android:id="@+id/cbVibrate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginLeft="24dp"
+        android:layout_marginStart="24dp"
         android:layout_marginTop="20dp"
-        android:text="Rezgés"
+        android:text="@string/text_vibrate"
         android:textColor="@android:color/black"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textSongName" />
+        app:layout_constraintTop_toBottomOf="@+id/cb3km" />
 
     <TextView
         android:id="@+id/alertText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="36dp"
-        android:text="Kapcsold be a netet és a GPS-t! :D"
+        android:layout_marginBottom="20dp"
+        android:text="@string/text_turn_on_GPS"
         app:layout_constraintBottom_toTopOf="@+id/button"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent" />
@@ -111,9 +130,9 @@
         android:id="@+id/button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="50dp"
+        android:layout_marginBottom="30dp"
         android:background="@android:color/holo_blue_dark"
-        android:text="Get GPS"
+        android:text="@string/button_get_GPS"
         android:textColor="@android:color/white"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
