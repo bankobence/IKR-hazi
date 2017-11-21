@@ -34,7 +34,9 @@ public class SearchActivity extends AppCompatActivity
      */
     private SectionsPagerAdapter mSectionsPagerAdapter;
 
-    public List<Stops> stops = new ArrayList<Stops>();
+    private List<Stops> stops = new ArrayList<Stops>();
+    private DatabaseManager myDB;
+
 
     /**
      * The {@link ViewPager} that will host the section contents.
@@ -60,23 +62,14 @@ public class SearchActivity extends AppCompatActivity
         //new FetchData(this).execute();
 
         //txt fajl meghatarozasa
-        InputStream inputStream = getResources().openRawResource(R.raw.stops_only);
+        InputStream inputStream = getResources().openRawResource(R.raw.stops);
         if(inputStream != null) {
             CSVImport csvFile = new CSVImport(inputStream);
             if(csvFile != null) {
 
                 //beolvasas, egy Stops objektumlistat kapunk vissza
                 stops = csvFile.read();
-                //myDB = new DatabaseManager(getBaseContext());
-                //myDB.printAllID(); //ez csak ugy ellenorzesnek, hogy mi van elotte az adatbazisban
-                /*
-                //vegigiteralva hozzaadjuk a lista tagjait a Stops tablahoz
-                for (Stops s : stops) {
-                    //Log.e("add Stop", "ID: " + s.id + " ,name: " + s.name + " ,lat: " + s.lat + " ,lon:" + s.lon);
-                    myDB.addStop(s);
-                }*/
 
-                //myDB.close();
             }else{
                 Log.e("FetchData", "Rossz csv fájl");
             }
@@ -101,33 +94,6 @@ public class SearchActivity extends AppCompatActivity
 
     }
 
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_search, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-
-
-        switch (item.getItemId()) {
-            // Respond to the action bar's Up/Home button
-            case android.R.id.home:
-                NavUtils.navigateUpFromSameTask(this);
-                return true;
-            case R.id.action_settings:
-                return true;
-        }
-
-
-        return super.onOptionsItemSelected(item);
-    }
 
     @Override
     public void onFragmentInteraction(Stops item) {

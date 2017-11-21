@@ -30,15 +30,18 @@ public class CSVImport {
             while ((csvLine = reader.readLine()) != null) {
 
                 //specialis regularis kifejezes, mert az allamas nev is tartalmazhat vesszot...
-                String[] row = csvLine.split(";(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
+                String[] row = csvLine.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
                 if(line != 0) {
-                    //amig uj sor van, a stops konstruktoraval Stops objektumokat csinalunk
-                    stop = new Stops(row);
-                    //es hozzaadjuk egy listahoz, ami Stopsokat tartalmaz
-                    resultList.add(stop);
+                    //csak a valós megallokat mentsuk el, az az ahol a stops.txt loc_type = semmi
+                    if(5 <= row.length && row[5].equals("")) {
+                        row[1]=row[1].replace("\"", ""); //kiszedjuk az aposztrofokat, nehol valamiert van benne
+                        //Log.e("MYAPP", "elso: " + row[0] + " ,masodik: " + row[1] + " ,harmadik: " + row[2] + ", negyedik: " + row[3]+";");
+                        //amig uj sor van, a stops konstruktoraval Stops objektumokat csinalunk
+                        stop = new Stops(row); //az elso negy mindig benne van: id,nev,lat,lon
+                        //es hozzaadjuk egy listahoz, ami Stopsokat tartalmaz
+                        resultList.add(stop);
+                    }
 
-                    //az elso negy mindig benne van: id,nev,lat,lon
-                    //Log.e("MYAPP", "elso: " + row[0] + " ,masodik: " + row[1] + " ,harmadik: " + row[2] + ", negyedik: " + row[3]+";");
                     line++;
                 }else line++;
             }

@@ -49,7 +49,7 @@ public class MyStopsRecyclerViewAdapter extends RecyclerView.Adapter<MyStopsRecy
         holder.mView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(holder.mView.getContext() ,mValues.get(position).getStopName(), Toast.LENGTH_SHORT).show();
+                //Toast.makeText(holder.mView.getContext() ,mValues.get(position).getStopName(), Toast.LENGTH_SHORT).show();
                 if (null != mListener) {
                     // Notify the active callbacks interface (the activity, if the
                     // fragment is attached to one) that an item has been selected.

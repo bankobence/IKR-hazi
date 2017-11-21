@@ -89,7 +89,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
         android:layout_marginLeft="24dp"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="18dp"
         android:layout_marginEnd="8dp"
         android:layout_marginRight="8dp"
         android:drawableStart="@mipmap/ic_sound"
@@ -102,7 +102,8 @@
         android:textSize="20sp"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/cbVibrate"
-        app:layout_constraintRight_toRightOf="parent" />
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintHorizontal_bias="0.0" />
 
     <CheckBox
         android:id="@+id/cbVibrate"
@@ -120,23 +121,33 @@
         android:id="@+id/alertText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="20dp"
+        android:layout_marginBottom="7dp"
         android:text="@string/text_turn_on_GPS"
         app:layout_constraintBottom_toTopOf="@+id/button"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent" />
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintHorizontal_bias="0.502" />
 
     <Button
         android:id="@+id/button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="30dp"
+        android:layout_marginBottom="16dp"
         android:background="@android:color/holo_blue_dark"
         android:text="@string/button_get_GPS"
         android:textColor="@android:color/white"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent" />
+        app:layout_constraintLeft_toRightOf="@+id/stopAlarm"
+        android:layout_marginLeft="24dp" />
+
+    <Button
+        android:id="@+id/stopAlarm"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="STOP RINGING"
+        app:layout_constraintBaseline_toBaselineOf="@+id/button"
+        app:layout_constraintLeft_toRightOf="parent"
+        android:layout_marginLeft="24dp" />
 
 
 </android.support.constraint.ConstraintLayout>
