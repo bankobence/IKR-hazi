@@ -98,7 +98,7 @@ public class DatabaseManager {
 
         if(cursor.moveToNext()){
             storedUri = Uri.parse(cursor.getString(cursor.getColumnIndex(DBHelper.COLUMN_SOUND_URI)));
-            Log.e("Adatbazis kezeles", "GET URI: " + cursor.getString(cursor.getColumnIndex(DBHelper.COLUMN_SOUND_URI)));
+            //Log.e("Adatbazis kezeles", "GET URI: " + cursor.getString(cursor.getColumnIndex(DBHelper.COLUMN_SOUND_URI)));
         }
         cursor.close();
         return storedUri;
@@ -118,7 +118,7 @@ public class DatabaseManager {
 
         if(cursor.moveToNext()){
             storedSound = cursor.getString(cursor.getColumnIndex(DBHelper.COLUMN_SOUND_NAME));
-            Log.e("Adatbazis kezeles", "GET SoundName: " + cursor.getString(cursor.getColumnIndex(DBHelper.COLUMN_SOUND_NAME)));
+            //Log.e("Adatbazis kezeles", "GET SoundName: " + cursor.getString(cursor.getColumnIndex(DBHelper.COLUMN_SOUND_NAME)));
         }
         cursor.close();
         return storedSound;
@@ -131,7 +131,7 @@ public class DatabaseManager {
 
         if(cursor.moveToNext()){
             stopName = cursor.getString(cursor.getColumnIndex(DBHelper.COLUMN_STOP_NAME));
-            Log.e("Adatbazis kezeles", "GET STOPNAME: " + cursor.getString(cursor.getColumnIndex(DBHelper.COLUMN_STOP_NAME)));
+            //Log.e("Adatbazis kezeles", "GET STOPNAME: " + cursor.getString(cursor.getColumnIndex(DBHelper.COLUMN_STOP_NAME)));
         }
         cursor.close();
         return stopName;

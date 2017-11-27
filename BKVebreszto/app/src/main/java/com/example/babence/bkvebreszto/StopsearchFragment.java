@@ -6,14 +6,10 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.example.babence.bkvebreszto.dummy.DummyContent;
-import com.example.babence.bkvebreszto.dummy.DummyContent.DummyItem;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,11 +22,12 @@ import java.util.List;
  */
 public class StopsearchFragment extends Fragment {
 
+
     private OnListFragmentInteractionListener mListener;
     public List<Stops> mStops = new ArrayList<Stops>();
     public SearchView searchView;
     RecyclerView recyclerView;
-    MyStopsRecyclerViewAdapter mAdapter;
+    public static MyStopsRecyclerViewAdapter mAdapter;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -38,7 +35,9 @@ public class StopsearchFragment extends Fragment {
      */
     public StopsearchFragment() {
     }
-
+    public static MyStopsRecyclerViewAdapter getAdapter(){
+        return mAdapter;
+    }
 
     public static StopsearchFragment newInstance() {
         StopsearchFragment fragment = new StopsearchFragment();

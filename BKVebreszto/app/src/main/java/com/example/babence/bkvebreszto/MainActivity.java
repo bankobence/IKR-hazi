@@ -2,7 +2,9 @@ package com.example.babence.bkvebreszto;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -21,6 +23,7 @@ import android.os.Vibrator;
 import android.provider.OpenableColumns;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -33,7 +36,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,9 +48,15 @@ public class MainActivity extends AppCompatActivity {
     private DatabaseManager myDB;
     protected List<Stops> stops = new ArrayList<>();
     public Stops activeStop;
+    Location currentBestLocation = null;
+    protected AlertDialog alert = null;
+    protected Dialog dialog = null;
     private static final int SONG_REQUEST_CODE = 42;
     private static final int SEARCH_REQUEST_CODE = 1;
     //protected double initialDistance;
+
+    LocationManager locationManagerNet=null;
+    LocationManager locationManagerGPS=null;
 
     private TextView songName;
     private TextView stopName;
@@ -59,22 +67,19 @@ public class MainActivity extends AppCompatActivity {
     protected Switch alarmEnabled;
     protected String displayName = "Csengőhang neve";
 
-    protected boolean alarmIsAlreadyOn;
     protected boolean cb100hasAlreadyPlayed;
     protected boolean cb1000hasAlreadyPlayed;
     protected boolean cb3000hasAlreadyPlayed;
 
 
     protected Uri selectedSoundUri = null;
-    protected MediaPlayer mediaPlayer;
-    protected Vibrator v;
+    protected static MediaPlayer mediaPlayer;
+    protected Vibrator vibr;
 
     // Start without a delay
     // Vibrate for 1000 milliseconds
     // Sleep for 1000 milliseconds
     private long[] pattern = {0, 1000, 1000};
-
-
 
     @Override
     protected void onPause(){
@@ -83,9 +88,11 @@ public class MainActivity extends AppCompatActivity {
             mediaPlayer.reset();
 
         }
-        if(v != null){
-            v.cancel();
+        if(vibr != null){
+            vibr.cancel();
         }
+        if(alert != null) { alert.dismiss(); }
+        if(dialog != null) { dialog.dismiss(); }
     }
 
     @Override
@@ -95,9 +102,13 @@ public class MainActivity extends AppCompatActivity {
             mediaPlayer.reset();
 
         }
-        if(v != null){
-            v.cancel();
+        if(vibr != null){
+            vibr.cancel();
         }
+        if(alert != null) { alert.dismiss(); }
+        if(dialog != null) { dialog.dismiss(); }
+        // Remove the listener you previously added
+        //locationManager.removeUpdates(locationListener);
 
     }
 
@@ -108,9 +119,16 @@ public class MainActivity extends AppCompatActivity {
             mediaPlayer.reset();
 
         }
-        if(v != null){
-            v.cancel();
+        if(vibr != null){
+            vibr.cancel();
         }
+        if(alert != null) { alert.dismiss(); }
+        if(dialog != null) { dialog.dismiss(); }
+
+        // Remove the listener you previously added
+        if(locationManagerNet != null) {locationManagerNet.removeUpdates(locationListener);}
+        if(locationManagerGPS != null) {locationManagerGPS.removeUpdates(locationListener);}
+
     }
 
     @Override
@@ -123,22 +141,9 @@ public class MainActivity extends AppCompatActivity {
         mediaPlayer = new MediaPlayer();
 
         myDB = new DatabaseManager(getBaseContext());
-        final LocationManager locationManagerNet = (LocationManager)
-                getSystemService(Context.LOCATION_SERVICE);
 
-        Button stopAlarm = (Button) findViewById(R.id.stopAlarm);
-        stopAlarm.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                alarmIsAlreadyOn = false;
-                if(mediaPlayer != null) {
-                    mediaPlayer.reset();
-                }
-                if(v != null){
-                    v.cancel();
-                }
-            }
-        });
+        locationManagerNet = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        locationManagerGPS = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
         stopName = (TextView) findViewById(R.id.stopNameText);
         stopName.setText(myDB.getStopName());
@@ -270,12 +275,14 @@ public class MainActivity extends AppCompatActivity {
                 }
             }else {
                 locationManagerNet.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
+                locationManagerGPS.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
                 Log.e("LOC1", "Location elkerve:");
             }
 
         } else {
             if(Build.VERSION.SDK_INT > android.os.Build.VERSION_CODES.M){
                 locationManagerNet.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
+                locationManagerGPS.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
                 Log.e("LOC2", "Location elkerve:");
             }else {
                 try {
@@ -292,38 +299,41 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        Button button = (Button) findViewById(R.id.button);
+        if (locationManagerNet.isProviderEnabled(LocationManager.NETWORK_PROVIDER)){
+            Toast.makeText(this, "Helymeghatározás engedélyezve", Toast.LENGTH_SHORT).show();
+        }else{
+            buildAlertMessageNoGps();
+        }
+
+        Button button = (Button) findViewById(R.id.getGPS);
         button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 
-                Toast.makeText(MainActivity.this, "Legutóbbi koordinatak: lon:" + longitude + " lat:" + latitude, Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Legutóbbi koordinatak: lon:"
+                        + longitude + " lat:" + latitude
+                        + "\nSzolgáltató: " + currentBestLocation.getProvider(), Toast.LENGTH_SHORT).show();
                 //Toast.makeText(MainActivity.this, getAndroidVersion(), Toast.LENGTH_SHORT).show();
 
             }
         });
 
-
-        // Remove the listener you previously added
-        //locationManager.removeUpdates(locationListener);
     }
 
     @Override
-    public void onActivityResult(int requestCode, int resultCode,
-                                 Intent resultData) {
+    public void onActivityResult(int requestCode, int resultCode, Intent resultData) {
 
-        // The ACTION_OPEN_DOCUMENT intent was sent with the request code
-        // READ_REQUEST_CODE. If the request code seen here doesn't match, it's the
-        // response to some other intent, and the code below shouldn't run at all.
+        //megallo valasztas masik activityben
         if (requestCode == SEARCH_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
 
             activeStop = resultData.getParcelableExtra("Search_data");
             stopName.setText(activeStop.getStopName());
-            //Log.e("MainActivity.ListItem", "Az aktív megálló: " + activeStop.getId()+ ", " + activeStop.getStopName());
-
 
             myDB.printAllID(); //ez csak ugy ellenorzesnek, hogy mi van elotte az adatbazisban
             myDB.clearTable();
             //myDB.printAllID();
+            cb100hasAlreadyPlayed = false;
+            cb1000hasAlreadyPlayed = false;
+            cb3000hasAlreadyPlayed = false;
 
             //Log.e("add Stop", "ID: " + s.id + " ,name: " + s.name + " ,lat: " + s.lat + " ,lon:" + s.lon);
             myDB.addStop(activeStop,
@@ -347,40 +357,35 @@ public class MainActivity extends AppCompatActivity {
             myDB.getStop();
         }
 
+        //zenevalasztas
         if (requestCode == SONG_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
             if (resultData != null) {
                 Uri uri = resultData.getData();
                 Log.e("File valasztas", "Uri: " + uri.toString());
                 dumpSoundMetaData(uri);
                 selectedSoundUri = uri;
-/*
-                mediaPlayer = new MediaPlayer();
-                mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-                try {
-                    mediaPlayer.setDataSource(getApplicationContext(), uri);
-                    //mediaPlayer.prepare();
-                    mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-                        @Override
-                        public void onPrepared(MediaPlayer mediaPlayer) {
-                            mediaPlayer.start();
-                        }
-                    });
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }*/
-
-
-
             }
         }
     }
 
+    //ring and vibrate
+    private void startAlarm(Uri uri, int alertDistance){
 
-    private void playSound(Uri uri){
+        if(cbVib.isChecked()) {
+
+            vibr = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+            if (Build.VERSION.SDK_INT >= 26) {
+
+                vibr.vibrate(VibrationEffect.createWaveform(pattern, 1));
+            } else {
+                vibr.vibrate(pattern, 0);
+            }
+
+        }
 
         try {
             //mediaPlayer.setDataSource(getApplicationContext(), uri);
+            mediaPlayer.reset();
             mediaPlayer.setDataSource(getApplicationContext(), RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE));
             if (android.os.Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP){
                 mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
@@ -394,20 +399,35 @@ public class MainActivity extends AppCompatActivity {
             mediaPlayer.setLooping(true);
             mediaPlayer.prepare();
             mediaPlayer.start();
-            /*mediaPlayer.prepareAsync();
-            mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-                        @Override
-                        public void onPrepared(MediaPlayer mediaPlayer) {
-                            mediaPlayer.start();
-                        }
-                    });*/
-
 
         } catch (IOException ex) {
             Log.e("MP", "create failed:", ex);
-        // fall through
+
         }
 
+        dialog = new Dialog(this);
+        dialog.setContentView(R.layout.alarm_dialog);
+        dialog.setCanceledOnTouchOutside(false);
+        String dialogText = String.valueOf(alertDistance) + " méter közel vagy!";
+
+        TextView text = (TextView) dialog.findViewById(R.id.alarmText);
+        text.setText(dialogText);
+
+        Button button = (Button) dialog.findViewById(R.id.stopAlarmButton);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(mediaPlayer != null) {
+                    mediaPlayer.reset();
+                }
+                if(vibr != null){
+                    vibr.cancel();
+                }
+                dialog.dismiss();
+            }
+        });
+
+        dialog.show();
     }
 
     public void dumpSoundMetaData(Uri uri) {
@@ -453,7 +473,7 @@ public class MainActivity extends AppCompatActivity {
         return "Android SDK: " + sdkVersion + " (" + release +")";
     }
 
-    public double getDistanceFromLatLonInKm(double lat1, double lon1, double lat2, double lon2) {
+    public static double getDistanceFromLatLonInKm(double lat1, double lon1, double lat2, double lon2) {
         int R = 6371; // Radius of the earth in km
         double dLat = deg2rad(lat2 - lat1);  // deg2rad below
         double dLon = deg2rad(lon2 - lon1);
@@ -465,7 +485,7 @@ public class MainActivity extends AppCompatActivity {
         return R * c; // Distance in km
     }
 
-    public double deg2rad(double deg) {
+    public static double deg2rad(double deg) {
         return deg * (Math.PI / 180);
     }
 
@@ -474,113 +494,162 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onLocationChanged(Location location) {
-            longitude = location.getLongitude();
-            latitude = location.getLatitude();
+            if(isBetterLocation(location, currentBestLocation)) {
+                currentBestLocation = location;
+                longitude = location.getLongitude();
+                latitude = location.getLatitude();
+            }
+
             //Log.e("LOCATION", "loc: " + location);
             if(alarmEnabled.isChecked()) {
+                double dist = getDistanceFromLatLonInKm(myDB.getLongitude(), myDB.getLatitude(), longitude, latitude);
+                Toast.makeText(
+                        getBaseContext(),
+                        "Helyzet megváltozott: Lat: " + location.getLatitude() + " Lng: "
+                                + location.getLongitude() + "\nTávolság a kiválasztott megállótól: " + dist
+                                + "\nSzolgáltató: " + currentBestLocation.getProvider(),
+                        Toast.LENGTH_SHORT).show();
+
                 /*Log.e("RINGING", "100: " + String.valueOf(cb100hasAlreadyPlayed)+
                         ", 1000: " + String.valueOf(cb1000hasAlreadyPlayed)+
                         ", 3000: " + String.valueOf(cb3000hasAlreadyPlayed));
 
                 Log.e("RINGING", "Song Uri: " + myDB.getUri());*/
-                double dist = getDistanceFromLatLonInKm(myDB.getLongitude(), myDB.getLatitude(), longitude, latitude);
+
                 if(!cb100hasAlreadyPlayed && dist < 0.1 && cb100.isChecked()) {
                     Log.e("CB100", "cb checked and dist: " + dist);
-                    //ring and vibrate
+
+                    startAlarm(myDB.getUri(), 100);
+
                     cb100hasAlreadyPlayed = true;
                     cb1000hasAlreadyPlayed = true;
                     cb3000hasAlreadyPlayed = true;
                     myDB.setBoolean(DBHelper.COLUMN_DONE_100, true);
                     myDB.setBoolean(DBHelper.COLUMN_DONE_1000, true);
                     myDB.setBoolean(DBHelper.COLUMN_DONE_3000, true);
-                    playSound(myDB.getUri());
 
-                    if(cbVib.isChecked()) {
-                        // The '0' here means to repeat indefinitely
-                        // '0' is actually the index at which the pattern keeps repeating from (the start)
-                        // To repeat the pattern from any other point, you could increase the index, e.g. '1'
-                        v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-                        if (Build.VERSION.SDK_INT >= 26) {
-
-                            v.vibrate(VibrationEffect.createWaveform(pattern, 1));
-                        } else {
-                            v.vibrate(pattern, 0);
-                        }
-                    }
                 }
                 if(!cb1000hasAlreadyPlayed && dist < 1 && cb1000.isChecked()) {
                     Log.e("CB1000", "cb checked and dist: " + dist);
-                    //ring and vibrate
+
+                    startAlarm(myDB.getUri(), 1000);
+
                     cb1000hasAlreadyPlayed = true;
                     cb3000hasAlreadyPlayed = true;
                     myDB.setBoolean(DBHelper.COLUMN_DONE_1000, true);
                     myDB.setBoolean(DBHelper.COLUMN_DONE_3000, true);
-                    //mediaPlayer.start();
-                    playSound(myDB.getUri());
 
-                    if(cbVib.isChecked()) {
-                        // The '0' here means to repeat indefinitely
-                        // '0' is actually the index at which the pattern keeps repeating from (the start)
-                        // To repeat the pattern from any other point, you could increase the index, e.g. '1'
-                        v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-                        if (Build.VERSION.SDK_INT >= 26) {
-
-                            v.vibrate(VibrationEffect.createWaveform(pattern, 1));
-                        } else {
-                            v.vibrate(pattern, 0);
-                        }
-
-                    }
                 }
                 if(!cb3000hasAlreadyPlayed && dist < 3 && cb3000.isChecked()) {
                     Log.e("CB3000", "cb checked and dist: " + dist);
-                    //ring and vibrate
 
-                    playSound(myDB.getUri());
+                    startAlarm(myDB.getUri(), 3000);
+
                     cb3000hasAlreadyPlayed = true;
                     myDB.setBoolean(DBHelper.COLUMN_DONE_3000, true);
 
-                    if(cbVib.isChecked()) {
-                        // The '0' here means to repeat indefinitely
-                        // '0' is actually the index at which the pattern keeps repeating from (the start)
-                        // To repeat the pattern from any other point, you could increase the index, e.g. '1'
-                        v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-                        if (Build.VERSION.SDK_INT >= 26) {
-
-                            v.vibrate(VibrationEffect.createWaveform(pattern, 1));
-                        } else {
-                            v.vibrate(pattern, 0);
-                        }
-
-                    }
                 }
 
-                Toast.makeText(
-                        getBaseContext(),
-                        "Location changed: Lat: " + location.getLatitude() + " Lng: "
-                                + location.getLongitude() + "\nTávolság a kiválasztott megállótól: " + dist,
-                        Toast.LENGTH_SHORT).show();
             }
             else {
                 Toast.makeText(
                         getBaseContext(),
-                        "Location changed: Lat: " + location.getLatitude() + " Lng: "
-                                + location.getLongitude(),
+                        "Helyzet megváltozott: Lat: " + location.getLatitude() + " Lng: "
+                                + location.getLongitude() + "\nSzolgáltató: " + currentBestLocation.getProvider(),
                         Toast.LENGTH_SHORT).show();
             }
         }
+
+
+
 
         public void onStatusChanged(String provider, int status, Bundle extras) {
             Log.e("LOCATION", "StatusChanged");
         }
 
         public void onProviderEnabled(String provider) {
-            Log.e("LOCATION", "ProviderEnabled");
+            Log.e("LOCATION", "ProviderEnabled: " + provider);
         }
 
         public void onProviderDisabled(String provider) {
-            Log.e("LOCATION", "ProviderDisabled");
+            Log.e("LOCATION", "ProviderDisabled: " + provider);
         }
 
     };
+
+    private static final int TWO_MINUTES = 1000 * 60 * 2;
+
+    /** Determines whether one Location reading is better than the current Location fix
+     * @param location  The new Location that you want to evaluate
+     * @param currentBestLocation  The current Location fix, to which you want to compare the new one
+     */
+    protected boolean isBetterLocation(Location location, Location currentBestLocation) {
+        if (currentBestLocation == null) {
+            // A new location is always better than no location
+            return true;
+        }
+
+        // Check whether the new location fix is newer or older
+        long timeDelta = location.getTime() - currentBestLocation.getTime();
+        boolean isSignificantlyNewer = timeDelta > TWO_MINUTES;
+        boolean isSignificantlyOlder = timeDelta < -TWO_MINUTES;
+        boolean isNewer = timeDelta > 0;
+
+        // If it's been more than two minutes since the current location, use the new location
+        // because the user has likely moved
+        if (isSignificantlyNewer) {
+            return true;
+            // If the new location is more than two minutes older, it must be worse
+        } else if (isSignificantlyOlder) {
+            return false;
+        }
+
+        // Check whether the new location fix is more or less accurate
+        int accuracyDelta = (int) (location.getAccuracy() - currentBestLocation.getAccuracy());
+        boolean isLessAccurate = accuracyDelta > 0;
+        boolean isMoreAccurate = accuracyDelta < 0;
+        boolean isSignificantlyLessAccurate = accuracyDelta > 200;
+
+        // Check if the old and new location are from the same provider
+        boolean isFromSameProvider = isSameProvider(location.getProvider(),
+                currentBestLocation.getProvider());
+
+        // Determine location quality using a combination of timeliness and accuracy
+        if (isMoreAccurate) {
+            return true;
+        } else if (isNewer && !isLessAccurate) {
+            return true;
+        } else if (isNewer && !isSignificantlyLessAccurate && isFromSameProvider) {
+            return true;
+        }
+        return false;
+    }
+
+    /** Checks whether two providers are the same */
+    private boolean isSameProvider(String provider1, String provider2) {
+        if (provider1 == null) {
+            return provider2 == null;
+        }
+        return provider1.equals(provider2);
+    }
+
+
+
+    private void buildAlertMessageNoGps() {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("Helymeghatározás kikapcsolva, bekapcsolja?")
+                .setCancelable(false)
+                .setPositiveButton("Igen", new DialogInterface.OnClickListener() {
+                    public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                        startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+                    }
+                })
+                .setNegativeButton("Nem", new DialogInterface.OnClickListener() {
+                    public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                        dialog.cancel();
+                    }
+                });
+        alert = builder.create();
+        alert.show();
+    }
 }

@@ -12,6 +12,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
@@ -48,6 +49,7 @@ public class MapFragment extends android.support.v4.app.Fragment
 
     MapView mapView;
     GoogleMap mMap;
+    TextView zoomText;
     private OnFragmentInteractionListener mListener;
 
     protected HashMap<String, Marker> courseMarkers = new HashMap<String, Marker>();
@@ -101,6 +103,7 @@ public class MapFragment extends android.support.v4.app.Fragment
             }
         });
 
+
     }
 
     protected Marker createMarker(double latitude, double longitude, String title) {
@@ -122,6 +125,11 @@ public class MapFragment extends android.support.v4.app.Fragment
             public void onCameraChange(CameraPosition position)
             {
                 addItemsToMap(mStops);
+                if(position.zoom>=16) {
+                    zoomText.setVisibility(View.INVISIBLE);
+                }else {
+                    zoomText.setVisibility(View.VISIBLE);
+                }
             }
         };
     }
@@ -146,6 +154,8 @@ public class MapFragment extends android.support.v4.app.Fragment
                     {
                         //Log.e("Map markers", "Aktualis zoom: " + mMap.getCameraPosition().zoom );
                         if(mMap.getCameraPosition().zoom >= 16) {
+
+
                             //Add the Marker to the Map and keep track of it with the HashMap
                             //getMarkerForItem just returns a MarkerOptions object
                             this.courseMarkers.put(item.getId(), createMarker(Double.parseDouble(item.getLatitude()),
@@ -156,6 +166,7 @@ public class MapFragment extends android.support.v4.app.Fragment
                         //Ha nagyon kizoomolunk de fent van a térképen, akkor töröljük
                         if(courseMarkers.containsKey(item.getId()) && mMap.getCameraPosition().zoom < 16)
                         {
+
                             //1. Remove the Marker from the GoogleMap
                             courseMarkers.get(item.getId()).remove();
 
@@ -194,6 +205,8 @@ public class MapFragment extends android.support.v4.app.Fragment
         mapView = (MapView) v.findViewById(R.id.mapview);
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
+
+        zoomText = (TextView) v.findViewById(R.id.zoomText);
 
         return v;
 

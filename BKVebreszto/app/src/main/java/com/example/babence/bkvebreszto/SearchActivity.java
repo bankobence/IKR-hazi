@@ -18,6 +18,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,16 +44,18 @@ public class SearchActivity extends AppCompatActivity
      * The {@link ViewPager} that will host the section contents.
      */
     private ViewPager mViewPager;
-/*
+
     @Override
     protected void onResume() {
         super.onResume();
-        new FetchData(this).execute();
+        new FetchAllStopFromServer(this).execute();
     }
-*/
 
-    public void dataReceived(List<Stops> stops) {
-        this.stops = stops;
+
+    public void dataReceived(List<Stops> stoplist) {
+        stops.clear();
+        stops.addAll(stoplist);
+        Log.e("SearchActivity", "Stops size: " + stops.size());
     }
 
 
@@ -59,10 +63,10 @@ public class SearchActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
-        //new FetchData(this).execute();
+
 
         //txt fajl meghatarozasa
-        InputStream inputStream = getResources().openRawResource(R.raw.stops);
+        /*InputStream inputStream = getResources().openRawResource(R.raw.stops);
         if(inputStream != null) {
             CSVImport csvFile = new CSVImport(inputStream);
             if(csvFile != null) {
@@ -71,12 +75,12 @@ public class SearchActivity extends AppCompatActivity
                 stops = csvFile.read();
 
             }else{
-                Log.e("FetchData", "Rossz csv fájl");
+                Log.e("FetchCSV", "Rossz csv fájl");
             }
 
         }else{
-            Log.e("FetchData", "Nem jó az inputStream");
-        }
+            Log.e("FetchCSV", "Nem jó az inputStream");
+        }*/
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);

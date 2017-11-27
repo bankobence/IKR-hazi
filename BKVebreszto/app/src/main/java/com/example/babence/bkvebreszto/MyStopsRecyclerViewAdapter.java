@@ -5,25 +5,23 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.babence.bkvebreszto.StopsearchFragment.OnListFragmentInteractionListener;
-import com.example.babence.bkvebreszto.dummy.DummyContent.DummyItem;
 
+import java.text.DecimalFormat;
 import java.util.List;
 
-/**
- * {@link RecyclerView.Adapter} that can display a {@link DummyItem} and makes a call to the
- * specified {@link OnListFragmentInteractionListener}.
- * TODO: Replace the implementation with code for your data type.
- */
-public class MyStopsRecyclerViewAdapter extends RecyclerView.Adapter<MyStopsRecyclerViewAdapter.ViewHolder> {
+import static com.example.babence.bkvebreszto.MainActivity.latitude;
+import static com.example.babence.bkvebreszto.MainActivity.longitude;
+
+
+class MyStopsRecyclerViewAdapter extends RecyclerView.Adapter<MyStopsRecyclerViewAdapter.ViewHolder> {
 
     //private final List<DummyItem> mValues;
     private List<Stops> mValues;
     private final OnListFragmentInteractionListener mListener;
 
-    public MyStopsRecyclerViewAdapter(List<Stops> items, OnListFragmentInteractionListener listener) {
+    MyStopsRecyclerViewAdapter(List<Stops> items, OnListFragmentInteractionListener listener) {
         mValues = items;
         mListener = listener;
     }
@@ -43,9 +41,17 @@ public class MyStopsRecyclerViewAdapter extends RecyclerView.Adapter<MyStopsRecy
     @Override
     public void onBindViewHolder(final ViewHolder holder, final int position) {
         holder.mItem = mValues.get(position);
-        holder.mIdView.setText(mValues.get(position).getId());
+        //holder.mIdView.setText(mValues.get(position).getId());
         holder.mContentView.setText(mValues.get(position).getStopName());
 
+        if(longitude != 0 && latitude != 0)  {
+            String distText = String.valueOf(new DecimalFormat("##.##").format(MainActivity.getDistanceFromLatLonInKm(
+                    Double.parseDouble(mValues.get(position).getLongitude()),
+                    Double.parseDouble(mValues.get(position).getLatitude()),
+                    longitude,
+                    latitude))) + " km";
+            holder.mDistanceView.setText(distText);
+        }
         holder.mView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -65,18 +71,21 @@ public class MyStopsRecyclerViewAdapter extends RecyclerView.Adapter<MyStopsRecy
         return mValues.size();
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder {
-        public final View mView;
-        public final TextView mIdView;
-        public final TextView mContentView;
-        public Stops mItem;
+    class ViewHolder extends RecyclerView.ViewHolder {
+        final View mView;
+        //public final TextView mIdView;
+        final TextView mContentView;
+        final TextView mDistanceView;
+        Stops mItem;
 
 
-        public ViewHolder(View view) {
+        ViewHolder(View view) {
             super(view);
             mView = view;
-            mIdView = (TextView) view.findViewById(R.id.id);
+            //mIdView = (TextView) view.findViewById(R.id.id);
             mContentView = (TextView) view.findViewById(R.id.content);
+            mDistanceView = (TextView) view.findViewById(R.id.distance);
+
         }
 
         @Override

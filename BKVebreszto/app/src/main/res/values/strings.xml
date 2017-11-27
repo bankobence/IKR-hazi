@@ -9,6 +9,9 @@
     <string name="sound_name">Csengőhang neve</string>
     <string name="text_vibrate">Rezgés</string>
     <string name="text_turn_on_GPS">Kapcsold be a netet és a GPS-t! :D</string>
-    <string name="button_get_GPS">Get GPS</string>
+    <string name="button_get_GPS">Koordináták lekérdezése</string>
+    <string name="stopAlarm">CSÖRGÉS LEÁLLÍTÁSA</string>
+    <string name="map_zoom">Nagyíts a megállók megtekintéséhez</string>
+    <string name="dialog_text">A közelben vagy!</string>
 
 </resources>

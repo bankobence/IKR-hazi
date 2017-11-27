@@ -1,4 +1,6 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:id="@+id/map"
@@ -8,4 +10,18 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent" />
 
-</LinearLayout>
+    <TextView
+        android:id="@+id/zoomText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="24dp"
+        android:padding="8dp"
+        android:maxLines="2"
+        android:text="@string/map_zoom"
+        android:textSize="20sp"
+        android:textColor="@android:color/black"
+        android:background="#99ffffff"
+        />
+
+</RelativeLayout>
