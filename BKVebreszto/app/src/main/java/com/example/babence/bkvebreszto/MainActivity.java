@@ -35,6 +35,8 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -85,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onPause(){
         super.onPause();
         if(mediaPlayer != null) {
+            mediaPlayer.stop();
             mediaPlayer.reset();
 
         }
@@ -99,6 +102,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onStop(){
         super.onStop();
         if(mediaPlayer != null) {
+            mediaPlayer.stop();
             mediaPlayer.reset();
 
         }
@@ -116,6 +120,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy(){
         super.onDestroy();
         if(mediaPlayer != null) {
+            mediaPlayer.stop();
             mediaPlayer.reset();
 
         }
@@ -138,7 +143,7 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        mediaPlayer = new MediaPlayer();
+
 
         myDB = new DatabaseManager(getBaseContext());
 
@@ -369,7 +374,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //ring and vibrate
-    private void startAlarm(Uri uri, int alertDistance){
+    private void startAlarm(int alertDistance){
+
+        Uri uri = myDB.getUri();
+        Log.e("MainActivity", "startAlarm URI: " + uri);
 
         if(cbVib.isChecked()) {
 
@@ -382,29 +390,54 @@ public class MainActivity extends AppCompatActivity {
             }
 
         }
+        mediaPlayer = new MediaPlayer();
 
-        try {
-            //mediaPlayer.setDataSource(getApplicationContext(), uri);
-            mediaPlayer.reset();
-            mediaPlayer.setDataSource(getApplicationContext(), RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE));
-            if (android.os.Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP){
-                mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-            }else{
-                mediaPlayer.setAudioAttributes(new AudioAttributes.Builder()
-                        .setUsage(AudioAttributes.USAGE_MEDIA)
-                        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                        .build());
+            try {
+
+                /*File filePath = new File(uri.getPath());
+                FileInputStream is = new FileInputStream(filePath);
+                mediaPlayer.setDataSource(is.getFD());*/
+                mediaPlayer.setDataSource(getApplicationContext(), uri);
+                //is.close();
+
+
+            }catch(IOException e){
+                try {
+                    Uri alert = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
+                    if (alert == null) {
+                        // alert is null, using backup
+                        alert = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+
+                        // I can't see this ever being null (as always have a default notification)
+                        // but just incase
+                        if (alert == null) {
+                            // alert backup is null, using 2nd backup
+                            alert = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
+                        }
+                    }
+                    mediaPlayer.setDataSource(getApplicationContext(), alert);
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+                e.printStackTrace();
             }
 
-            mediaPlayer.setLooping(true);
-            mediaPlayer.prepare();
-            mediaPlayer.start();
-
-        } catch (IOException ex) {
-            Log.e("MP", "create failed:", ex);
-
+        if (android.os.Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP) {
+            mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        } else {
+            mediaPlayer.setAudioAttributes(new AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                    .build());
         }
-
+        mediaPlayer.setLooping(true);
+        mediaPlayer.prepareAsync();
+        mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+            @Override
+            public void onPrepared(MediaPlayer mp) {
+                mediaPlayer.start();
+            }
+        });
         dialog = new Dialog(this);
         dialog.setContentView(R.layout.alarm_dialog);
         dialog.setCanceledOnTouchOutside(false);
@@ -418,6 +451,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 if(mediaPlayer != null) {
+                    mediaPlayer.stop();
                     mediaPlayer.reset();
                 }
                 if(vibr != null){
@@ -519,7 +553,7 @@ public class MainActivity extends AppCompatActivity {
                 if(!cb100hasAlreadyPlayed && dist < 0.1 && cb100.isChecked()) {
                     Log.e("CB100", "cb checked and dist: " + dist);
 
-                    startAlarm(myDB.getUri(), 100);
+                    startAlarm(100);
 
                     cb100hasAlreadyPlayed = true;
                     cb1000hasAlreadyPlayed = true;
@@ -532,7 +566,7 @@ public class MainActivity extends AppCompatActivity {
                 if(!cb1000hasAlreadyPlayed && dist < 1 && cb1000.isChecked()) {
                     Log.e("CB1000", "cb checked and dist: " + dist);
 
-                    startAlarm(myDB.getUri(), 1000);
+                    startAlarm(1000);
 
                     cb1000hasAlreadyPlayed = true;
                     cb3000hasAlreadyPlayed = true;
@@ -543,7 +577,7 @@ public class MainActivity extends AppCompatActivity {
                 if(!cb3000hasAlreadyPlayed && dist < 3 && cb3000.isChecked()) {
                     Log.e("CB3000", "cb checked and dist: " + dist);
 
-                    startAlarm(myDB.getUri(), 3000);
+                    startAlarm(3000);
 
                     cb3000hasAlreadyPlayed = true;
                     myDB.setBoolean(DBHelper.COLUMN_DONE_3000, true);
@@ -632,8 +666,6 @@ public class MainActivity extends AppCompatActivity {
         }
         return provider1.equals(provider2);
     }
-
-
 
     private void buildAlertMessageNoGps() {
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
